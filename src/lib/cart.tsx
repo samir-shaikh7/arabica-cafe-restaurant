@@ -164,8 +164,8 @@ export function buildWhatsAppLink(
   const itemLines = items
     .map((i) => {
       const price = i.variant ? i.variant.price : i.price;
-      const variantLabel = i.variant ? ` *( ${i.variant.name} )` : "";
-      return `${i.qty}x  ${i.name}${variantLabel} - ${formatPrice(price * i.qty)}`;
+      const variantLabel = i.variant ? ` *( ${encodeURIComponent(i.variant.name)} )` : "";
+      return `${i.qty}x  ${encodeURIComponent(i.name)}${variantLabel} - ${formatPrice(price * i.qty)}`;
     })
     .join("%0A");
 
@@ -185,22 +185,38 @@ export function buildWhatsAppLink(
   msg += `Subtotal: ${formatPrice(subtotal)}%0A`;
   msg += `Delivery: ${deliveryFee > 0 ? formatPrice(deliveryFee) : "FREE"}%0A`;
   msg += `*Total Amount: ${formatPrice(total)}*%0A%0A`;
+  let paymentText = "Cash on Delivery";
+  if (details?.paymentMethod) {
+    switch (details.paymentMethod) {
+      case "gcash":
+        paymentText = "G-Cash";
+        break;
+      case "link":
+        paymentText = "Payment Link";
+        break;
+      case "cash":
+      default:
+        paymentText = "Cash on Delivery";
+        break;
+    }
+  }
   
-  msg += `Payment Method: Cash on Delivery%0A%0A`;
+  msg += `Payment Method: ${paymentText}%0A%0A`;
 
   if (details) {
     msg += `Customer Details:%0A`;
-    msg += `Name: ${details.name}%0A`;
-    msg += `Phone: ${details.phone}%0A%0A`;
+    msg += `Name: ${encodeURIComponent(details.name)}%0A`;
+    msg += `Phone: ${encodeURIComponent(details.phone)}%0A%0A`;
     
     msg += `Delivery Address:%0A`;
-    msg += `${details.address}%0A`;
-    msg += `Landmark: ${details.landmark || ""}%0A`;
-    msg += `Notes: ${details.notes || ""}%0A%0A`;
+    msg += `${encodeURIComponent(details.address)}%0A`;
+    if (details.landmark) msg += `Landmark: ${encodeURIComponent(details.landmark)}%0A`;
+    if (details.notes) msg += `Notes: ${encodeURIComponent(details.notes)}%0A`;
+    msg += `%0A`;
     
     if (details.locationLink) {
       msg += `Live Location:%0A`;
-      msg += `${details.locationLink}%0A%0A`;
+      msg += `${encodeURIComponent(details.locationLink)}%0A%0A`;
     }
   }
 
