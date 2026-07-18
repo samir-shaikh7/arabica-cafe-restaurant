@@ -132,4 +132,5 @@ export interface CheckoutDetails {
   landmark?: string;
   notes?: string;
   locationLink?: string;
+  paymentMethod?: string;
 }
