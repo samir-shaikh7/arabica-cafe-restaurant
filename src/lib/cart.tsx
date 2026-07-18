@@ -164,8 +164,8 @@ export function buildWhatsAppLink(
   const itemLines = items
     .map((i) => {
       const price = i.variant ? i.variant.price : i.price;
-      const variantLabel = i.variant ? ` (${i.variant.name})` : "";
-      return `*${i.qty}x* ${i.name}${variantLabel} - ${formatPrice(price * i.qty)}`;
+      const variantLabel = i.variant ? ` *( ${i.variant.name} )` : "";
+      return `${i.qty}x  ${i.name}${variantLabel} - ${formatPrice(price * i.qty)}`;
     })
     .join("%0A");
 
@@ -173,35 +173,40 @@ export function buildWhatsAppLink(
     .replace(/\+/g, "")
     .replace(/\s/g, "");
 
-  const orderHeader = siteName
-    ? siteName.toUpperCase()
-    : "ARABICA COFFEE HOUSE";
+  const shopName = siteName || "Arabica Coffee House";
 
-  let msg = `*NEW ORDER FROM ${orderHeader}*%0A`;
-  msg += `==========================%0A%0A`;
+  let msg = `Hello ${shopName},%0A%0A`;
+  msg += `I want to place an order:%0A%0A`;
+  msg += `${itemLines}%0A%0A`;
+  msg += `—%0A`;
+  msg += `Order Breakdown:%0A`;
+  
+  const subtotal = total - deliveryFee;
+  msg += `Subtotal: ${formatPrice(subtotal)}%0A`;
+  msg += `Delivery: ${deliveryFee > 0 ? formatPrice(deliveryFee) : "FREE"}%0A`;
+  msg += `*Total Amount: ${formatPrice(total)}*%0A%0A`;
+  
+  msg += `Payment Method: Cash on Delivery%0A%0A`;
 
   if (details) {
-    msg += `*Customer Details*%0A`;
-    msg += `👤 Name: ${details.name}%0A`;
-    msg += `📞 Phone: ${details.phone}%0A`;
-    msg += `📍 Address: ${details.address}%0A`;
-    if (details.landmark) msg += `🏢 Landmark: ${details.landmark}%0A`;
-    if (details.locationLink) msg += `🌍 Live Location: ${details.locationLink}%0A`;
-    if (details.notes) msg += `%0A*Note:* _${details.notes}_%0A`;
-    msg += `%0A`;
+    msg += `Customer Details:%0A`;
+    msg += `Name: ${details.name}%0A`;
+    msg += `Phone: ${details.phone}%0A%0A`;
+    
+    msg += `Delivery Address:%0A`;
+    msg += `${details.address}%0A`;
+    msg += `Landmark: ${details.landmark || ""}%0A`;
+    msg += `Notes: ${details.notes || ""}%0A%0A`;
+    
+    if (details.locationLink) {
+      msg += `Live Location:%0A`;
+      msg += `${details.locationLink}%0A%0A`;
+    }
   }
 
-  msg += `*Order Summary*%0A`;
-  msg += `${itemLines}%0A%0A`;
+  msg += `Please confirm my order.`;
 
-  if (deliveryFee > 0) {
-    msg += `Subtotal: ${formatPrice(total - deliveryFee)}%0A`;
-    msg += `Delivery: ${formatPrice(deliveryFee)}%0A`;
-  }
-
-  msg += `*Total Amount: ${formatPrice(total)}*%0A%0A`;
-  msg += `==========================%0A`;
-  msg += `_Please confirm my order._`;
-
+  // We explicitly use manual %0A and rely on the browser to encode spaces
+  // because strict encodeURIComponent breaks newlines on some WhatsApp web clients.
   return `https://wa.me/${cleanNumber}?text=${msg}`;
 }
