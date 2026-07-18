@@ -64,6 +64,7 @@ function CartPage() {
   const { data: siteData } = useSite();
   const [step, setStep] = useState<1 | 2>(1); // 1: Cart, 2: Checkout Details
   const [isLocating, setIsLocating] = useState(false);
+  const [locationLink, setLocationLink] = useState("");
   const navigate = useNavigate();
 
   const subtotal = total || 0;
@@ -95,6 +96,7 @@ function CartPage() {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+          setLocationLink(`https://www.google.com/maps?q=${latitude},${longitude}`);
           const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
           );
@@ -128,7 +130,9 @@ function CartPage() {
       phone: data.phone,
       address: data.address,
       landmark: data.landmark,
-      notes: data.notes + ` (Payment: ${data.paymentMethod.toUpperCase()})`,
+      notes: data.notes,
+      paymentMethod: data.paymentMethod,
+      locationLink: locationLink || undefined,
     };
 
     const link = buildWhatsAppLink(
